@@ -14,7 +14,7 @@ func visit( path string, f os.FileInfo, err error ) error {
 	// fmt.Printf( "%s\n", path )
 	hash, err := hash_file_md5(path)
 	if err == nil {
-		fmt.Println(hash)
+		fmt.Println(hash, path)
 	}
 	return nil
 }
