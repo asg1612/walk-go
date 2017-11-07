@@ -1,36 +1,54 @@
 package main
 
 import (
-	"path/filepath"
+	"crypto/md5"
+	"encoding/hex"
 	"flag"
 	"fmt"
-	"os"
-	"crypto/md5"
 	"io"
-	"encoding/hex"
+	"os"
+	"path/filepath"
+	//"github.com/hashicorp/vault/builtin/audit/file"
 )
 
-func visit( path string, f os.FileInfo, err error ) error {
+func visit(path string, f os.FileInfo, err error) error {
 	// fmt.Printf( "%s\n", path )
-	hash, err := hash_file_md5(path)
+	file := open_file(path)
+	hash, err := hash_file_md5(file)
+	fmt.Println(hash)
 	if err == nil {
-		fmt.Println(hash, path)
+		fmt.Println(err)
 	}
+	size_file(file)
+	defer file.Close()
 	return nil
 }
 
-func hash_file_md5(filePath string) (string, error) {
+func open_file(filepath string) *os.File {
+	file, err := os.Open(filepath)
+	if err != nil {
+		fmt.Print("Error al abrir el archivo")
+	}
+
+	return file
+}
+
+func size_file(file *os.File) {
+	file_statics, err := file.Stat()
+
+	if err == nil {
+		fmt.Println(err)
+	}
+	file_statics.Size()
+	//fmt.Println("Tamaño: ", file_statics.Size())
+}
+
+func hash_file_md5(file *os.File) (string, error) {
 	//Initialize variable returnMD5String now in case an error has to be returned
 	var returnMD5String string
 
-	//Open the passed argument and check for any error
-	file, err := os.Open(filePath)
-	if err != nil {
-		return returnMD5String, err
-	}
-
 	//Tell the program to call the following function when the current function returns
-	defer file.Close()
+	//defer file.Close()
 
 	//Open a new hash interface to write to
 	hash := md5.New()
@@ -53,10 +71,7 @@ func hash_file_md5(filePath string) (string, error) {
 func main() {
 	flag.Parse()
 	root := flag.Arg(0)
-	err := filepath.Walk( root, visit )
-	fmt.Printf( "filepath.Walk() returned %v\n", err )
-
-
-
+	err := filepath.Walk(root, visit)
+	fmt.Printf("filepath.Walk() returned %v\n", err)
 
 }
